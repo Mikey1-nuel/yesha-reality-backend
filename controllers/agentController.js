@@ -1,51 +1,146 @@
-import { getAllAgents, getAgent, createAgent, updateAgent, deleteAgent } from "../database.js";
+// import { getAllAgents, getAgent, createAgent, updateAgent, deleteAgent } from "../database.js";
 
-//@desc Get all agents
-//@route GET /agents
-export async function fetchAgents(req, res) {
-  try {
-    const agents = await getAllAgents();
+// //@desc Get all agents
+// //@route GET /agents
+// export async function fetchAgents(req, res) {
+//   try {
+//     const agents = await getAllAgents();
+//     res.json(agents);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// }
+
+// //@desc Get a agent
+// //@route GET /agents/:id
+// export const fetchAgent = async (req, res, next) => {
+//   const id = parseInt(req.params.id);
+//   const agent = await getAgent(id);
+
+//   if (!agent) {
+//        const error = new Error(`An agent with the id of ${id} was not found `);
+//        error.status = 404;
+//        return next(error);
+//     }
+
+//   res.status(200).json(agent);
+// };
+
+// //@desc create new agent
+// //@route POST /agents
+// export const createNewAgent = async (req, res, next) => {
+//   try {
+//     const {
+//       fullName,
+//     email,
+//     phoneNumber,
+//     gender,
+//     state,
+//     experience,
+//     agency,
+//     password,
+//     } = req.body;
+
+//     const filename = req.file.filename;
+
+//     // Save to DB using your helper function
+//     const result = await createAgent(
+//       fullName,
+//     email,
+//     phoneNumber,
+//     gender,
+//     state,
+//     experience,
+//     agency,
+//     filename,
+//     password,
+//     );
+
+//     res.status(201).json(result);
+//     console.log("Received password:", req.body.password);
+//     console.log("Uploaded file name:", req.file.filename);
+//   } catch (err) {
+//     const error = new Error(`The ${err.message}`);
+//     error.status = 400;
+//     return next(error);
+//   }
+// };
+
+// //@desc Delete aan agent
+// //@route DELETE /agents/:id
+// export const deleteAnAgent = async (req, res, next) => {
+//   const id = parseInt(req.params.id);
+
+//   try {
+//     const result = await deleteAgent(id);
+
+//     if (result.affectedRows === 0) {
+//       const error = new Error(`An agent with the id of ${id} was not found`);
+//       error.status = 404;
+//       return next(error);
+//     }
+
+//     res.status(200).json({ message: "Agent deleted successfully" });
+//   } catch (err) {
+//     const error = new Error(`Failed to delete agent: ${err.message}`);
+//     error.status = 500;
+//     return next(error);
+//   }
+// };
+
+import {
+  getAllAgents,
+  getAgent,
+  createAgent,
+  updateAgent,
+  deleteAgent
+} from "../database.js";
+
+// @desc Get all agents
+// @route GET /agents
+export function fetchAgents(req, res) {
+  getAllAgents((err, agents) => {
+    if (err) return res.status(500).send(err.message);
     res.json(agents);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
+  });
 }
 
-//@desc Get a agent
-//@route GET /agents/:id
-export const fetchAgent = async (req, res, next) => {
+// @desc Get a single agent
+// @route GET /agents/:id
+export function fetchAgent(req, res, next) {
   const id = parseInt(req.params.id);
-  const agent = await getAgent(id);
 
-  if (!agent) {
-       const error = new Error(`An agent with the id of ${id} was not found `);
-       error.status = 404;
-       return next(error);
+  getAgent(id, (err, agent) => {
+    if (err) return res.status(500).send(err.message);
+
+    if (!agent) {
+      const error = new Error(`An agent with the id of ${id} was not found`);
+      error.status = 404;
+      return next(error);
     }
 
-  res.status(200).json(agent);
-};
+    res.status(200).json(agent);
+  });
+}
 
-//@desc create new agent
-//@route POST /agents
-export const createNewAgent = async (req, res, next) => {
-  try {
-    const {
-      fullName,
+// @desc Create new agent
+// @route POST /agents
+export function createNewAgent(req, res, next) {
+  const {
+    fullName,
     email,
     phoneNumber,
     gender,
     state,
     experience,
     agency,
-    password,
-    } = req.body;
+    password
+  } = req.body;
 
-    const filename = req.file.filename;
+  const filename = req.file?.filename || "default.jpg"; // fallback if no image
 
-    // Save to DB using your helper function
-    const result = await createAgent(
-      fullName,
+  createAgent(
+    fullName,
     email,
     phoneNumber,
     gender,
@@ -54,25 +149,32 @@ export const createNewAgent = async (req, res, next) => {
     agency,
     filename,
     password,
-    );
+    (err, result) => {
+      if (err) {
+        const error = new Error(`Failed to create agent: ${err.message}`);
+        error.status = 400;
+        return next(error);
+      }
 
-    res.status(201).json(result);
-    console.log("Received password:", req.body.password);
-    console.log("Uploaded file name:", req.file.filename);
-  } catch (err) {
-    const error = new Error(`The ${err.message}`);
-    error.status = 400;
-    return next(error);
-  }
-};
+      console.log("Received password:", password);
+      console.log("Uploaded file name:", filename);
 
-//@desc Delete aan agent
-//@route DELETE /agents/:id
-export const deleteAnAgent = async (req, res, next) => {
+      res.status(201).json(result);
+    }
+  );
+}
+
+// @desc Delete an agent
+// @route DELETE /agents/:id
+export function deleteAnAgent(req, res, next) {
   const id = parseInt(req.params.id);
 
-  try {
-    const result = await deleteAgent(id);
+  deleteAgent(id, (err, result) => {
+    if (err) {
+      const error = new Error(`Failed to delete agent: ${err.message}`);
+      error.status = 500;
+      return next(error);
+    }
 
     if (result.affectedRows === 0) {
       const error = new Error(`An agent with the id of ${id} was not found`);
@@ -81,9 +183,5 @@ export const deleteAnAgent = async (req, res, next) => {
     }
 
     res.status(200).json({ message: "Agent deleted successfully" });
-  } catch (err) {
-    const error = new Error(`Failed to delete agent: ${err.message}`);
-    error.status = 500;
-    return next(error);
-  }
-};
+  });
+}
