@@ -171,6 +171,7 @@ export const db = mysql.createConnection({
 });
 
 console.log("Connecting to MySQL at:", process.env.MYSQL_HOST, process.env.MYSQL_PORT, process.env.MYSQL_DATABASE);
+console.log("Connecting to MySQL at:", process.env.MYSQLHOST, process.env.MYSQLPORT, process.env.MYSQL_DATABASE);
 
 db.connect((err) => {
   if (err) throw err;
