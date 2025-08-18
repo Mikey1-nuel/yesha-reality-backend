@@ -10,7 +10,7 @@ export const db = mysql.createConnection({
   database: process.env.MYSQL_DATABASE,
   port: process.env.MYSQL_PORT
 }).promise();
-console.log("Connecting to MySQL at:", process.env.MYSQL_HOST, process.env.MYSQL_PORT);
+console.log("Connecting to MySQL at:", process.env.MYSQL_HOST, process.env.MYSQL_PORT, process.env.MYSQL_DATABASE);
 
 db.connect((err) => {
   if (err) throw err;
@@ -42,12 +42,18 @@ export async function createProperty(
   location,
   featured = false
 ) {
+  // const imagePath = `/uploads/${filename}`;
   const imagePath = `/uploads/${filename}`;
 
+  // const sql = `
+  //   INSERT INTO properties (estate, landSize, bedroom, image, houseType, price, location, featured)
+  //   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  // `;
+
   const sql = `
-    INSERT INTO properties (estate, landSize, bedroom, image, houseType, price, location, featured)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO properties (estate, landSize, bedroom, image, houseType, price, location, featured)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`;
 
   const values = [
     estate,
@@ -83,8 +89,12 @@ export async function deleteProperty(id) {
 
 // Route to get all agents
 export async function getAllAgents() {
-  const [rows] = await db.query('SELECT * FROM agents');
-  return rows;
+  // const [rows] = await db.query('SELECT * FROM agents');
+  // return rows;
+  const [rows] = await db.query(
+  'SELECT * FROM properties WHERE id = ?',
+  [id]
+);
 }
 
 export async function getAgent(id) {
