@@ -100,14 +100,15 @@ export async function createAgent(
     gender,
     state,
     experience,
+    agency,
     filename,
     password,
 ) {
   const imagePath = `/uploads/${filename}`;
 
   const sql = `
-    INSERT INTO agents (fullName, email, phoneNumber, gender, state, experience, image, password)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO agents (fullName, email, phoneNumber, gender, state, experience, agency, image, password)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -117,6 +118,7 @@ export async function createAgent(
     gender,
     state,
     experience,
+    agency,
     imagePath,
     password,
   ];

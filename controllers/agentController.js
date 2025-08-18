@@ -37,6 +37,7 @@ export const createNewAgent = async (req, res, next) => {
     gender,
     state,
     experience,
+    agency,
     password,
     } = req.body;
 
@@ -50,11 +51,13 @@ export const createNewAgent = async (req, res, next) => {
     gender,
     state,
     experience,
+    agency,
     filename,
     password,
     );
 
     res.status(201).json(result);
+    console.log("Received password:", req.body.password);
     console.log("Uploaded file name:", req.file.filename);
   } catch (err) {
     const error = new Error(`The ${err.message}`);

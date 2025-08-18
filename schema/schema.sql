@@ -37,6 +37,7 @@ CREATE TABLE agents (
     gender ENUM('Male', 'Female', 'Other') NOT NULL,
     state VARCHAR(255) NOT NULL,
     experience ENUM('0-1', '2-3', '4+'),
+    agency VARCHAR(255) NOT NULL DEFAULT 'Freelancer',
     image VARCHAR(255),
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
