@@ -10,6 +10,7 @@ export const db = mysql.createConnection({
   database: process.env.MYSQL_DATABASE,
   port: process.env.MYSQL_PORT
 }).promise();
+console.log("Connecting to MySQL at:", process.env.MYSQL_HOST, process.env.MYSQL_PORT);
 
 db.connect((err) => {
   if (err) throw err;
