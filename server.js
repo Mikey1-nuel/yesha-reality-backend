@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import bodyParser from 'body-parser'
+import dotenv from 'dotenv';
+dotenv.config();
 import { fileURLToPath } from 'url';
 import logger from './middleware/logger.js';
 import errorHandler from './middleware/error.js';
