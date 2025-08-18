@@ -6,7 +6,7 @@ CREATE TABLE properties (
     estate VARCHAR(255) NOT NULL,
     landSize INT,
     bedroom INT,
-    image VARCHAR(255) NOT NULL, -- stores filename or full URL
+    image VARCHAR(255) NOT NULL,
     houseType VARCHAR(255) NOT NULL,
     price VARCHAR(255) NOT NULL,
     location VARCHAR(255) NOT NULL,
