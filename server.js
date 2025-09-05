@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import logger from './middleware/logger.js';
 import errorHandler from './middleware/error.js';
 import notFound from './middleware/notFound.js';
+import admin from './routes/adminRoutes.js'
 import properties from './routes/properties.js';
 import agents from './routes/agents.js'
 
@@ -16,10 +17,15 @@ const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 8000;
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3001" || "*", // or "*" for all origins
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 app.use(bodyParser.json());
 
+app.use('/api/admin', admin);
 app.use('/properties', properties);
 app.use('/agents', agents);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

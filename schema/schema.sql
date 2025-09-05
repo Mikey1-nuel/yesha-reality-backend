@@ -43,3 +43,6 @@ CREATE TABLE agents (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+INSERT INTO admins (email, password)
+VALUES ('admin@yeshareality.com', 'yeshareality1000$');
