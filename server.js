@@ -17,11 +17,7 @@ const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 8000;
 
 const app = express();
-app.use(cors({
-  origin: "http://localhost:3001" || "*", // or "*" for all origins
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
