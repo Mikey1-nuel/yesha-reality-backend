@@ -1,4 +1,10 @@
-import { getAllAgents, getAgent, createAgent, updateAgent, deleteAgent } from "../database.js";
+import {
+  getAllAgents,
+  getAgent,
+  createAgent,
+  updateAgent,
+  deleteAgent,
+} from "../database.js";
 
 //@desc Get all agents
 //@route GET /agents
@@ -15,45 +21,54 @@ export async function fetchAgents(req, res) {
 //@route GET /agents/:id
 export const fetchAgent = async (req, res, next) => {
   const id = parseInt(req.params.id);
+  console.log("Requested agent ID:", req.params.id);
+
+
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Invalid agent ID" });
+  }
+
   const agent = await getAgent(id);
 
   if (!agent) {
-       const error = new Error(`An agent with the id of ${id} was not found `);
-       error.status = 404;
-       return next(error);
-    }
+    const error = new Error(`An agent with the id of ${id} was not found`);
+    error.status = 404;
+    return next(error);
+  }
 
   res.status(200).json(agent);
 };
 
-//@desc create new agent
-//@route POST /agents
 export const createNewAgent = async (req, res, next) => {
   try {
     const {
       fullName,
-    email,
-    phoneNumber,
-    gender,
-    state,
-    experience,
-    agency,
-    password,
+      email,
+      phoneNumber,
+      gender,
+      state,
+      experience,
+      agency,
+      bio,
+      password,
     } = req.body;
+
+    console.log("Full request body:", req.body); // ✅ Log entire payload
+    console.log("Bio field:", req.body.bio);     // ✅ Log just the bio
 
     const filename = req.file.filename;
 
-    // Save to DB using your helper function
     const result = await createAgent(
       fullName,
-    email,
-    phoneNumber,
-    gender,
-    state,
-    experience,
-    agency,
-    filename,
-    password,
+      email,
+      phoneNumber,
+      gender,
+      state,
+      experience,
+      agency,
+      bio,
+      filename,
+      password
     );
 
     res.status(201).json(result);

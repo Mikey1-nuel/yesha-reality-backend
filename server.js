@@ -11,6 +11,7 @@ import notFound from './middleware/notFound.js';
 import admin from './routes/adminRoutes.js'
 import properties from './routes/properties.js';
 import agents from './routes/agents.js'
+import contactRoute from "./routes/contact.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,7 @@ app.use('/api/admin', admin);
 app.use('/properties', properties);
 app.use('/agents', agents);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/contact', contactRoute);
 
 
 //Logger Middleware

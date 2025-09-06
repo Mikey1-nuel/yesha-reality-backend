@@ -1,5 +1,7 @@
 import { db } from '../database.js';
 import bcrypt from 'bcrypt';
+import dotenv from "dotenv";
+dotenv.config();
 import jwt from 'jsonwebtoken';
 
 export async function insertAdmin(email, plainPassword) {

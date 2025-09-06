@@ -38,6 +38,7 @@ CREATE TABLE agents (
     state VARCHAR(255) NOT NULL,
     experience ENUM('0-1', '2-3', '4+'),
     agency VARCHAR(255) NOT NULL DEFAULT 'Freelancer',
+    bio VARCHAR(500),
     image VARCHAR(255),
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -46,3 +47,13 @@ CREATE TABLE agents (
 
 INSERT INTO admins (email, password)
 VALUES ('admin@yeshareality.com', 'yeshareality1000$');
+
+CREATE TABLE inquiries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  phone VARCHAR(20),
+  email VARCHAR(100),
+  message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -3,14 +3,21 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // MySQL connection
-export const db = mysql.createConnection({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
-}).promise();
-console.log("Connecting to MySQL at:", process.env.MYSQLHOST, process.env.MYSQLPORT, process.env.MYSQLDATABASE);
+export const db = mysql
+  .createConnection({
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT,
+  })
+  .promise();
+console.log(
+  "Connecting to MySQL at:",
+  process.env.MYSQLHOST,
+  process.env.MYSQLPORT,
+  process.env.MYSQLDATABASE
+);
 
 db.connect((err) => {
   if (err) throw err;
@@ -19,17 +26,20 @@ db.connect((err) => {
 
 // Route to get all properties
 export async function getProperties() {
-  const [rows] = await db.query('SELECT * FROM properties');
+  const [rows] = await db.query("SELECT * FROM properties");
   return rows;
 }
 
 export async function getProperty(id) {
-    const [rows] = await db.query(`
+  const [rows] = await db.query(
+    `
         SELECT * 
         from properties
         WHERE id = ?
-        `, [id]);
-    return rows[0];
+        `,
+    [id]
+  );
+  return rows[0];
 }
 
 export async function createProperty(
@@ -71,58 +81,64 @@ export async function createProperty(
 }
 
 export async function updateProperty(id) {
-    const [rows] = await db.query(`
+  const [rows] = await db.query(
+    `
         SELECT * 
         from properties
         WHERE id = ?
-        `, [id]);
-    return rows[0];
+        `,
+    [id]
+  );
+  return rows[0];
 }
 
 export async function deleteProperty(id) {
-  const [result] = await db.query(
-    "DELETE FROM properties WHERE id = ?",
-    [id]
-  );
+  const [result] = await db.query("DELETE FROM properties WHERE id = ?", [id]);
   return result;
 }
 
 // Route to get all agents
 export async function getAllAgents() {
-  const [rows] = await db.query('SELECT * FROM agents');
+  const [rows] = await db.query("SELECT * FROM agents");
   return rows;
-//   const [rows] = await db.query(
-//   'SELECT * FROM properties WHERE id = ?',
-//   [id]
-// );
+  //   const [rows] = await db.query(
+  //   'SELECT * FROM properties WHERE id = ?',
+  //   [id]
+  // );
 }
 
 export async function getAgent(id) {
-    const [rows] = await db.query(`
+  const [rows] = await db.query(
+    `
         SELECT * 
         from agents
         WHERE id = ?
-        `, [id]);
-    return rows[0];
+        `,
+    [id]
+  );
+  return rows[0];
 }
 
 export async function createAgent(
   fullName,
-    email,
-    phoneNumber,
-    gender,
-    state,
-    experience,
-    agency,
-    filename,
-    password,
+  email,
+  phoneNumber,
+  gender,
+  state,
+  experience,
+  agency,
+  bio,
+  filename,
+  password
 ) {
   const imagePath = `/uploads/${filename}`;
 
   const sql = `
-    INSERT INTO agents (fullName, email, phoneNumber, gender, state, experience, agency, image, password)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO agents (
+    fullName, email, phoneNumber, gender, state,
+    experience, agency, bio, image, password
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+`;
 
   const values = [
     fullName,
@@ -132,6 +148,7 @@ export async function createAgent(
     state,
     experience,
     agency,
+    bio,
     imagePath,
     password,
   ];
@@ -141,19 +158,18 @@ export async function createAgent(
 }
 
 export async function updateAgent(id) {
-    const [rows] = await db.query(`
+  const [rows] = await db.query(
+    `
         SELECT * 
         from agents
         WHERE id = ?
-        `, [id]);
-    return rows[0];
+        `,
+    [id]
+  );
+  return rows[0];
 }
 
 export async function deleteAgent(id) {
-  const [result] = await db.query(
-    "DELETE FROM agents WHERE id = ?",
-    [id]
-  );
+  const [result] = await db.query("DELETE FROM agents WHERE id = ?", [id]);
   return result;
 }
-
