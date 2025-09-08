@@ -2,27 +2,27 @@ import mysql from "mysql2";
 import dotenv from "dotenv";
 dotenv.config();
 
-// MySQL connection
+import mysql from "mysql2";
+
 export const db = mysql
-  .createConnection({
+  .createPool({
     host: process.env.MYSQLHOST,
     user: process.env.MYSQLUSER,
     password: process.env.MYSQLPASSWORD,
     database: process.env.MYSQLDATABASE,
-    port: process.env.MYSQLPORT,
+    port: Number(process.env.MYSQLPORT),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
   })
   .promise();
+
 console.log(
-  "Connecting to MySQL at:",
+  "Connected to MySQL pool at:",
   process.env.MYSQLHOST,
   process.env.MYSQLPORT,
   process.env.MYSQLDATABASE
 );
-
-db.connect((err) => {
-  if (err) throw err;
-  console.log("MySQL connected");
-});
 
 // Route to get all properties
 export async function getProperties() {
