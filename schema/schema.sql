@@ -14,6 +14,8 @@ CREATE TABLE properties (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE properties ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
 INSERT INTO properties (estate, landSize, bedroom, image, houseType, price, location, featured)
 VALUES
 ('Soteria City, Jikoyi', 250, 2, '/uploads/Fully-Detached-Bungalow.jpeg', 'Fully Detached Bungalow', '5,000,000', 'Abuja', FALSE),
@@ -56,4 +58,17 @@ CREATE TABLE inquiries (
   email VARCHAR(100),
   message TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE amenities (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE property_amenities (
+  property_id INT,
+  amenity_id INT,
+  PRIMARY KEY (property_id, amenity_id),
+  FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
+  FOREIGN KEY (amenity_id) REFERENCES amenities(id) ON DELETE CASCADE
 );

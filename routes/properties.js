@@ -5,7 +5,10 @@ import {
   fetchProperties,
   fetchProperty,
   createNewProperty,
-  deleteAProperty
+  updateProperty,
+  deleteAProperty,
+  addAmenitiesToProperty,
+  getAmenitiesForProperty
 } from "../controllers/propertyController.js";
 
 const router = express.Router();
@@ -31,7 +34,13 @@ router.get("/:id", fetchProperty);
 //Create new property
 router.post("/", upload.single("image"), createNewProperty);
 
+//update a single property
+router.put("/:id", updateProperty);
+
 //delete a single property
 router.delete("/:id", deleteAProperty);
+
+router.post("/:id/amenities", addAmenitiesToProperty);
+router.get("/:id/amenities", getAmenitiesForProperty);
 
 export default router;
