@@ -1,6 +1,6 @@
 import { getProperties, getProperty, createProperty, deleteProperty } from "../database.js";
 import { db } from "../database.js";
-import { v2 as cloudinary } from "cloudinary";
+// import { v2 as cloudinary } from "cloudinary";
 
 //@desc Get all properties
 //@route GET /properties
@@ -28,15 +28,65 @@ export const fetchProperty = async (req, res, next) => {
   res.status(200).json(property);
 };
 
-// Cloudinary config
-cloudinary.config({ 
-        cloud_name: 'dx0dibmdc', 
-        api_key: '984279264675812', 
-  api_secret: "xhYwmcUXqAeJLzZ10U1w4p6xmV4",
-});
-
 // @desc Create new property
 // @route POST /properties
+// export const createNewProperty = async (req, res, next) => {
+//   try {
+//     const {
+//       estate,
+//       landSize,
+//       bedroom,
+//       houseType,
+//       price,
+//       location,
+//       featured,
+//     } = req.body;
+
+//     // Convert string "true"/"false" to actual boolean
+//     const isFeatured = featured === "true" || featured === true;
+
+//     // Upload image to Cloudinary
+//     let imageUrl = null;
+//     if (req.file) {
+//       const result = await cloudinary.uploader.upload_stream(
+//         { folder: "properties" },
+//         async (error, result) => {
+//           if (error) {
+//             throw new Error("Cloudinary upload failed");
+//           }
+
+//           imageUrl = result.secure_url;
+
+//           // Save to DB
+//           const property = await createProperty(
+//             estate,
+//             landSize,
+//             bedroom,
+//             imageUrl,
+//             houseType,
+//             price,
+//             location,
+//             isFeatured
+//           );
+
+//           res.status(201).json(property);
+//         }
+//       );
+
+//       // Pipe buffer to Cloudinary stream
+//       result.end(req.file.buffer);
+//     } else {
+//       throw new Error("No image file provided");
+//     }
+//   } catch (err) {
+//     const error = new Error(`The ${err.message}`);
+//     error.status = 400;
+//     return next(error);
+//   }
+// };
+
+//@desc create new property
+//@route POST /properties
 export const createNewProperty = async (req, res, next) => {
   try {
     const {
@@ -49,42 +99,25 @@ export const createNewProperty = async (req, res, next) => {
       featured,
     } = req.body;
 
+    const filename = req.file.filename;
+
     // Convert string "true"/"false" to actual boolean
-    const isFeatured = featured === "true" || featured === true;
+    const isFeatured = featured === 'true' || featured === true;
 
-    // Upload image to Cloudinary
-    let imageUrl = null;
-    if (req.file) {
-      const result = await cloudinary.uploader.upload_stream(
-        { folder: "properties" },
-        async (error, result) => {
-          if (error) {
-            throw new Error("Cloudinary upload failed");
-          }
+    // Save to DB using your helper function
+    const result = await createProperty(
+      estate,
+      landSize,
+      bedroom,
+      filename,
+      houseType,
+      price,
+      location,
+      isFeatured // ✅ use the parsed boolean
+    );
 
-          imageUrl = result.secure_url;
-
-          // Save to DB
-          const property = await createProperty(
-            estate,
-            landSize,
-            bedroom,
-            imageUrl,
-            houseType,
-            price,
-            location,
-            isFeatured
-          );
-
-          res.status(201).json(property);
-        }
-      );
-
-      // Pipe buffer to Cloudinary stream
-      result.end(req.file.buffer);
-    } else {
-      throw new Error("No image file provided");
-    }
+    res.status(201).json(result);
+    console.log("Uploaded file name:", req.file.filename);
   } catch (err) {
     const error = new Error(`The ${err.message}`);
     error.status = 400;
