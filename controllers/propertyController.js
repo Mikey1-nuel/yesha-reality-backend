@@ -1,6 +1,14 @@
-import { getProperties, getProperty, createProperty, deleteProperty } from "../database.js";
+import {
+  getProperties,
+  getProperty,
+  createProperty,
+  deleteProperty,
+} from "../database.js";
 import { db } from "../database.js";
 // import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "../middleware/cloudinary.js";
+import streamifier from "streamifier";
+import { notifySubscribers } from "../database.js";
 
 //@desc Get all properties
 //@route GET /properties
@@ -20,10 +28,10 @@ export const fetchProperty = async (req, res, next) => {
   const property = await getProperty(id);
 
   if (!property) {
-       const error = new Error(`A property with the id of ${id} was not found `);
-       error.status = 404;
-       return next(error);
-    }
+    const error = new Error(`A property with the id of ${id} was not found `);
+    error.status = 404;
+    return next(error);
+  }
 
   res.status(200).json(property);
 };
@@ -87,41 +95,89 @@ export const fetchProperty = async (req, res, next) => {
 
 //@desc create new property
 //@route POST /properties
+// export const createNewProperty = async (req, res, next) => {
+//   try {
+//     const {
+//       estate,
+//       landSize,
+//       bedroom,
+//       houseType,
+//       price,
+//       location,
+//       featured,
+//     } = req.body;
+
+//     const filename = req.file.filename;
+
+//     // Convert string "true"/"false" to actual boolean
+//     const isFeatured = featured === 'true' || featured === true;
+
+//     // Save to DB using your helper function
+//     const result = await createProperty(
+//       estate,
+//       landSize,
+//       bedroom,
+//       filename,
+//       houseType,
+//       price,
+//       location,
+//       isFeatured // ✅ use the parsed boolean
+//     );
+
+//     res.status(201).json(result);
+//     console.log("Uploaded file name:", req.file.filename);
+//   } catch (err) {
+//     const error = new Error(`The ${err.message}`);
+//     error.status = 400;
+//     return next(error);
+//   }
+// };
+
 export const createNewProperty = async (req, res, next) => {
   try {
-    const {
+    const { estate, landSize, bedroom, houseType, price, location, featured } =
+      req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Image is required" });
+    }
+
+    const isFeatured = featured === "true" || featured === true;
+
+    // Upload to Cloudinary
+    const uploadFromBuffer = () => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "properties" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    const result = await uploadFromBuffer();
+
+    // Save property to DB
+    const property = await createProperty(
       estate,
       landSize,
       bedroom,
+      result.secure_url,
       houseType,
       price,
       location,
-      featured,
-    } = req.body;
-
-    const filename = req.file.filename;
-
-    // Convert string "true"/"false" to actual boolean
-    const isFeatured = featured === 'true' || featured === true;
-
-    // Save to DB using your helper function
-    const result = await createProperty(
-      estate,
-      landSize,
-      bedroom,
-      filename,
-      houseType,
-      price,
-      location,
-      isFeatured // ✅ use the parsed boolean
+      isFeatured,
     );
 
-    res.status(201).json(result);
-    console.log("Uploaded file name:", req.file.filename);
+    // 🔔 Notify subscribers
+    await notifySubscribers(property);
+
+    res.status(201).json(property);
   } catch (err) {
-    const error = new Error(`The ${err.message}`);
-    error.status = 400;
-    return next(error);
+    next(err);
   }
 };
 
@@ -141,7 +197,9 @@ export const updateProperty = async (req, res) => {
 
   try {
     // Check if property exists
-    const [existing] = await db.query("SELECT * FROM properties WHERE id = ?", [id]);
+    const [existing] = await db.query("SELECT * FROM properties WHERE id = ?", [
+      id,
+    ]);
     if (existing.length === 0) {
       return res.status(404).json({ error: "Property not found" });
     }
@@ -155,7 +213,7 @@ export const updateProperty = async (req, res) => {
       "houseType",
       "price",
       "location",
-      "featured"
+      "featured",
     ];
 
     // Filter and sanitize updates
@@ -163,7 +221,10 @@ export const updateProperty = async (req, res) => {
       .filter(([key]) => allowedFields.includes(key))
       .map(([key, value]) => {
         if (key === "featured") {
-          return [key, value === true || value === "true" || value === 1 ? 1 : 0];
+          return [
+            key,
+            value === true || value === "true" || value === 1 ? 1 : 0,
+          ];
         }
         return [key, value];
       });
@@ -175,9 +236,14 @@ export const updateProperty = async (req, res) => {
     const fields = filteredUpdates.map(([key]) => `${key} = ?`).join(", ");
     const values = filteredUpdates.map(([_, value]) => value);
 
-    await db.query(`UPDATE properties SET ${fields} WHERE id = ?`, [...values, id]);
+    await db.query(`UPDATE properties SET ${fields} WHERE id = ?`, [
+      ...values,
+      id,
+    ]);
 
-    const [updated] = await db.query("SELECT * FROM properties WHERE id = ?", [id]);
+    const [updated] = await db.query("SELECT * FROM properties WHERE id = ?", [
+      id,
+    ]);
     res.json(updated[0]);
   } catch (err) {
     console.error("Update error:", err);
@@ -213,11 +279,15 @@ export const addAmenitiesToProperty = async (req, res) => {
   const { amenities } = req.body; // array of strings
 
   if (!Array.isArray(amenities) || amenities.length === 0) {
-    return res.status(400).json({ error: "Amenities must be a non-empty array" });
+    return res
+      .status(400)
+      .json({ error: "Amenities must be a non-empty array" });
   }
 
   try {
-    const [property] = await db.query("SELECT * FROM properties WHERE id = ?", [id]);
+    const [property] = await db.query("SELECT * FROM properties WHERE id = ?", [
+      id,
+    ]);
     if (property.length === 0) {
       return res.status(404).json({ error: "Property not found" });
     }
@@ -227,11 +297,17 @@ export const addAmenitiesToProperty = async (req, res) => {
       if (!trimmed) continue;
 
       // Insert amenity if it doesn't exist
-      const [existing] = await db.query("SELECT * FROM amenities WHERE name = ?", [trimmed]);
+      const [existing] = await db.query(
+        "SELECT * FROM amenities WHERE name = ?",
+        [trimmed],
+      );
       let amenityId;
 
       if (existing.length === 0) {
-        const result = await db.query("INSERT INTO amenities (name) VALUES (?)", [trimmed]);
+        const result = await db.query(
+          "INSERT INTO amenities (name) VALUES (?)",
+          [trimmed],
+        );
         amenityId = result[0].insertId;
       } else {
         amenityId = existing[0].id;
@@ -240,7 +316,7 @@ export const addAmenitiesToProperty = async (req, res) => {
       // Link to property
       await db.query(
         "INSERT IGNORE INTO property_amenities (property_id, amenity_id) VALUES (?, ?)",
-        [id, amenityId]
+        [id, amenityId],
       );
     }
 
@@ -263,7 +339,7 @@ export const getAmenitiesForProperty = async (req, res) => {
       JOIN property_amenities pa ON a.id = pa.amenity_id
       WHERE pa.property_id = ?
       `,
-      [id]
+      [id],
     );
 
     res.json(rows.map((row) => row.name));

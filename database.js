@@ -1,5 +1,6 @@
 import mysql from "mysql2";
 import dotenv from "dotenv";
+import { sendEmail } from "./middleware/sendEmail.js";
 dotenv.config();
 
 export const db = mysql
@@ -50,18 +51,13 @@ export async function createProperty(
   location,
   featured = false
 ) {
-  // const imagePath = `/uploads/${filename}`;
-  const imagePath = `/uploads/${filename}`;
-
-  // const sql = `
-  //   INSERT INTO properties (estate, landSize, bedroom, image, houseType, price, location, featured)
-  //   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  // `;
+  const imagePath = filename; // full Cloudinary URL
 
   const sql = `
-  INSERT INTO properties (estate, landSize, bedroom, image, houseType, price, location, featured)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-`;
+    INSERT INTO properties (
+      estate, landSize, bedroom, image, houseType, price, location, featured
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
   const values = [
     estate,
@@ -75,7 +71,19 @@ export async function createProperty(
   ];
 
   const [result] = await db.query(sql, values);
-  return { message: "Property added successfully", id: result.insertId };
+
+  return {
+    message: "Property added successfully",
+    id: result.insertId,
+    estate,
+    landSize,
+    bedroom,
+    image: imagePath,   // ✅ correct variable
+    houseType,
+    price,
+    location,
+    featured,           // ✅ use the parameter directly
+  };
 }
 
 export async function updateProperty(id) {
@@ -129,7 +137,8 @@ export async function createAgent(
   filename,
   password
 ) {
-  const imagePath = `/uploads/${filename}`;
+  // const imagePath = `/uploads/${filename}`;
+  const imagePath = filename; // this will now be full Cloudinary URL
 
   const sql = `
   INSERT INTO agents (
@@ -171,3 +180,16 @@ export async function deleteAgent(id) {
   const [result] = await db.query("DELETE FROM agents WHERE id = ?", [id]);
   return result;
 }
+
+export async function notifySubscribers(property) {
+  const [subscribers] = await db.query("SELECT email FROM newsletter_subscribers");
+
+  for (const { email } of subscribers) {
+    await sendEmail({
+      to: email,
+      subject: `New Property Added: ${property.estate}`,
+      text: `Check out our latest listing!\n\nEstate: ${property.estate}\nLocation: ${property.location}\nPrice: ${property.price}\n\nView more details here: ${property.image}`,
+    });
+  }
+}
+

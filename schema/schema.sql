@@ -47,6 +47,11 @@ CREATE TABLE agents (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE admins (
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
 INSERT INTO admins (email, password)
 VALUES ('admin@yeshareality.com', 'yeshareality1000$');
 
@@ -72,3 +77,9 @@ CREATE TABLE property_amenities (
   FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
   FOREIGN KEY (amenity_id) REFERENCES amenities(id) ON DELETE CASCADE
 );
+
+CREATE TABLE newsletter_subscribers ( 
+  id INT AUTO_INCREMENT PRIMARY KEY, 
+  email VARCHAR(255) UNIQUE NOT NULL, 
+  subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+  );

@@ -9,6 +9,7 @@ import logger from './middleware/logger.js';
 import errorHandler from './middleware/error.js';
 import notFound from './middleware/notFound.js';
 import admin from './routes/adminRoutes.js'
+import subscribe from './routes/subscribe.js'
 import properties from './routes/properties.js';
 import agents from './routes/agents.js'
 import contactRoute from "./routes/contact.js";
@@ -25,8 +26,8 @@ app.use(bodyParser.json());
 app.use('/api/admin', admin);
 app.use('/properties', properties);
 app.use('/agents', agents);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/contact', contactRoute);
+app.use('/api', subscribe);
 
 
 //Logger Middleware

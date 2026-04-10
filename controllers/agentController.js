@@ -5,6 +5,8 @@ import {
   updateAgent,
   deleteAgent,
 } from "../database.js";
+import cloudinary from "../middleware/cloudinary.js";
+import streamifier from "streamifier";
 
 //@desc Get all agents
 //@route GET /agents
@@ -39,6 +41,48 @@ export const fetchAgent = async (req, res, next) => {
   res.status(200).json(agent);
 };
 
+// export const createNewAgent = async (req, res, next) => {
+//   try {
+//     const {
+//       fullName,
+//       email,
+//       phoneNumber,
+//       gender,
+//       state,
+//       experience,
+//       agency,
+//       bio,
+//       password,
+//     } = req.body;
+
+//     console.log("Full request body:", req.body); // ✅ Log entire payload
+//     console.log("Bio field:", req.body.bio);     // ✅ Log just the bio
+
+//     const filename = req.file.filename;
+
+//     const result = await createAgent(
+//       fullName,
+//       email,
+//       phoneNumber,
+//       gender,
+//       state,
+//       experience,
+//       agency,
+//       bio,
+//       filename,
+//       password
+//     );
+
+//     res.status(201).json(result);
+//     console.log("Received password:", req.body.password);
+//     console.log("Uploaded file name:", req.file.filename);
+//   } catch (err) {
+//     const error = new Error(`The ${err.message}`);
+//     error.status = 400;
+//     return next(error);
+//   }
+// };
+
 export const createNewAgent = async (req, res, next) => {
   try {
     const {
@@ -53,12 +97,29 @@ export const createNewAgent = async (req, res, next) => {
       password,
     } = req.body;
 
-    console.log("Full request body:", req.body); // ✅ Log entire payload
-    console.log("Bio field:", req.body.bio);     // ✅ Log just the bio
+    if (!req.file) {
+      return res.status(400).json({ error: "Image is required" });
+    }
 
-    const filename = req.file.filename;
+    // Upload image to Cloudinary
+    const uploadFromBuffer = () => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "agents" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
 
-    const result = await createAgent(
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    const result = await uploadFromBuffer();
+
+    // Save Cloudinary URL instead of filename
+    const agent = await createAgent(
       fullName,
       email,
       phoneNumber,
@@ -67,17 +128,13 @@ export const createNewAgent = async (req, res, next) => {
       experience,
       agency,
       bio,
-      filename,
+      result.secure_url, // ✅ store this
       password
     );
 
-    res.status(201).json(result);
-    console.log("Received password:", req.body.password);
-    console.log("Uploaded file name:", req.file.filename);
+    res.status(201).json(agent);
   } catch (err) {
-    const error = new Error(`The ${err.message}`);
-    error.status = 400;
-    return next(error);
+    next(err);
   }
 };
 
