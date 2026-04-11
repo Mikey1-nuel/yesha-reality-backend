@@ -173,7 +173,7 @@ export const createNewProperty = async (req, res, next) => {
     );
 
     // 🔔 Notify subscribers
-    await notifySubscribers(property);
+   notifySubscribers(property);
 
     res.status(201).json(property);
   } catch (err) {

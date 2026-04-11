@@ -182,14 +182,37 @@ export async function deleteAgent(id) {
 }
 
 export async function notifySubscribers(property) {
-  const [subscribers] = await db.query("SELECT email FROM newsletter_subscribers");
+  try {
+    const [subscribers] = await db.query(
+      "SELECT email FROM newsletter_subscribers"
+    );
 
-  for (const { email } of subscribers) {
-    await sendEmail({
-      to: email,
-      subject: `New Property Added: ${property.estate}`,
-      text: `Check out our latest listing!\n\nEstate: ${property.estate}\nLocation: ${property.location}\nPrice: ${property.price}\n\nView more details here: ${property.image}`,
-    });
+    if (!subscribers.length) return;
+
+    const emailPromises = subscribers.map(({ email }) =>
+      sendEmail({
+        to: email,
+        subject: `New Property Added: ${property.estate}`,
+        html: `
+          <h2>New Property Available 🏡</h2>
+          <p><strong>Estate:</strong> ${property.estate}</p>
+          <p><strong>Location:</strong> ${property.location}</p>
+          <p><strong>Price:</strong> ₦${property.price}</p>
+          <br/>
+          <a href="${property.image}" target="_blank">
+            View Property
+          </a>
+        `,
+      }).catch((err) => {
+        console.error(`Failed to send to ${email}:`, err.message);
+      })
+    );
+
+    await Promise.all(emailPromises);
+
+    console.log("All notifications attempted");
+  } catch (error) {
+    console.error("Notification error:", error);
   }
 }
 
