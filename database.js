@@ -20,7 +20,7 @@ console.log(
   "Connected to MySQL pool at:",
   process.env.MYSQLHOST,
   process.env.MYSQLPORT,
-  process.env.MYSQLDATABASE
+  process.env.MYSQLDATABASE,
 );
 
 // Route to get all properties
@@ -36,7 +36,7 @@ export async function getProperty(id) {
         from properties
         WHERE id = ?
         `,
-    [id]
+    [id],
   );
   return rows[0];
 }
@@ -49,7 +49,7 @@ export async function createProperty(
   houseType,
   price,
   location,
-  featured = false
+  featured = false,
 ) {
   const imagePath = filename; // full Cloudinary URL
 
@@ -78,11 +78,11 @@ export async function createProperty(
     estate,
     landSize,
     bedroom,
-    image: imagePath,   // ✅ correct variable
+    image: imagePath, // ✅ correct variable
     houseType,
     price,
     location,
-    featured,           // ✅ use the parameter directly
+    featured, // ✅ use the parameter directly
   };
 }
 
@@ -93,7 +93,7 @@ export async function updateProperty(id) {
         from properties
         WHERE id = ?
         `,
-    [id]
+    [id],
   );
   return rows[0];
 }
@@ -120,7 +120,7 @@ export async function getAgent(id) {
         from agents
         WHERE id = ?
         `,
-    [id]
+    [id],
   );
   return rows[0];
 }
@@ -135,7 +135,7 @@ export async function createAgent(
   agency,
   bio,
   filename,
-  password
+  password,
 ) {
   // const imagePath = `/uploads/${filename}`;
   const imagePath = filename; // this will now be full Cloudinary URL
@@ -171,7 +171,7 @@ export async function updateAgent(id) {
         from agents
         WHERE id = ?
         `,
-    [id]
+    [id],
   );
   return rows[0];
 }
@@ -184,7 +184,7 @@ export async function deleteAgent(id) {
 export async function notifySubscribers(property) {
   try {
     const [subscribers] = await db.query(
-      "SELECT email FROM newsletter_subscribers"
+      "SELECT email FROM newsletter_subscribers",
     );
 
     if (!subscribers.length) return;
@@ -194,18 +194,21 @@ export async function notifySubscribers(property) {
         to: email,
         subject: `New Property Added: ${property.estate}`,
         html: `
-          <h2>New Property Available 🏡</h2>
-          <p><strong>Estate:</strong> ${property.estate}</p>
-          <p><strong>Location:</strong> ${property.location}</p>
-          <p><strong>Price:</strong> ₦${property.price}</p>
+          <h2>🏡 New Property Just Listed</h2>
+          <p>Estate: <b>${property.estate}</b></p>
+          <p>Location: ${property.location}</p>
+          <p>Price: ₦${property.price}</p>
           <br/>
-          <a href="${property.image}" target="_blank">
-            View Property
+          <a href="${property.image}" style="color:blue;">
+            View Property Image
           </a>
+          <p style="font-size:12px;color:gray;">
+            You received this because you subscribed.
+          </p>
         `,
       }).catch((err) => {
         console.error(`Failed to send to ${email}:`, err.message);
-      })
+      }),
     );
 
     await Promise.all(emailPromises);
@@ -215,4 +218,3 @@ export async function notifySubscribers(property) {
     console.error("Notification error:", error);
   }
 }
-
